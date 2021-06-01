@@ -18,7 +18,6 @@ import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.math.atan2
 import kotlin.math.sqrt
-import sun.audio.AudioPlayer.player
 
 class YouTube : ModMain {
 
@@ -79,41 +78,42 @@ class YouTube : ModMain {
             return ((x.toInt() shr 4) == chunk.x) && ((z.toInt() shr 4) == chunk.z)
         }
         var currentWorld = "world";
-        api.eventBus().register(api.eventBus().createListener(), ChunkLoad::class.java, {
-           var i = 0
-           while(i < npcs1.size){
-               var npc = npcs1[i]
-               if(npc.worldName == currentWorld){
-                   if(isInsideOfChunk(it.chunk, npc.x, npc.z)){
-                       var npcEntity = createNpc(npc)
-                       api.minecraft().world.spawnEntity(npcEntity)
-                       npcEntity.teleport(npc.x, npc.y, npc.z)
-                       npc.entity = npcEntity
-                   }
-               }
-               i++
-           }
-        },1)
+        UIEngine.registerHandler(ChunkLoad::class.java, 1) {
+            var i = 0
+            while (i < npcs1.size) {
+                var npc = npcs1[i]
+                if (npc.worldName == currentWorld) {
+                    if (isInsideOfChunk(this.chunk, npc.x, npc.z)) {
+                        var npcEntity = createNpc(npc)
+                        api.minecraft().world.spawnEntity(npcEntity)
+                        npcEntity.teleport(npc.x, npc.y, npc.z)
+                        npc.entity = npcEntity
+                    }
+                }
+                i++
+            }
+        }
 
-        api.eventBus().register(api.eventBus().createListener(), ChunkUnload::class.java,{
+        UIEngine.registerHandler(ChunkUnload::class.java, 1){
             var i = 0
             while(i<npcs1.size){
                 var npc = npcs1[i]
                 if(npc.worldName == currentWorld){
-                    if(isInsideOfChunk(it.chunk, npc.x, npc.z)){
+                    if(isInsideOfChunk(this.chunk, npc.x, npc.z)){
                         npc.entity = null
                     }
                 }
                 i++
             }
-        }, 1)
+        }
+
         var period : Long = 0
 
-        api.messageBus().register(api.messageBus().createListener(), PluginMessage::class.java, {
-            if(it.channel == "ilyafx_npcs"){
-                var state = NetUtil.readUtf8(it.data)
+        UIEngine.registerHandler(PluginMessage::class.java, 1){
+            if(this.channel == "ilyafx_npcs"){
+                var state = NetUtil.readUtf8(this.data)
                 if(state == "change_world"){
-                    currentWorld = NetUtil.readUtf8(it.data)
+                    currentWorld = NetUtil.readUtf8(this.data)
                     var i = 0
                     while (i<npcs1.size){
                         val npc = npcs1[i]
@@ -138,26 +138,26 @@ class YouTube : ModMain {
                         i++
                     }
                 }else if ("set_npcs" == state){
-                    var count = NetUtil.readVarInt(it.data)
+                    var count = NetUtil.readVarInt(this.data)
                     var newNpcs : ArrayList<NpcData> = arrayListOf()
                     var i = 0
                     while (i< count){
-                        var entityId = NetUtil.readVarInt(it.data)
-                        var world = NetUtil.readUtf8(it.data)
-                        var x = it.data.readDouble()
-                        var y = it.data.readDouble()
-                        var z = it.data.readDouble()
-                        var name = NetUtil.readUtf8(it.data)
-                        var hasSkin = it.data.readBoolean()
+                        var entityId = NetUtil.readVarInt(this.data)
+                        var world = NetUtil.readUtf8(this.data)
+                        var x = this.data.readDouble()
+                        var y = this.data.readDouble()
+                        var z = this.data.readDouble()
+                        var name = NetUtil.readUtf8(this.data)
+                        var hasSkin = this.data.readBoolean()
                         var skin : String? = null
                         var digest : String? = null
                         var skinType : String? = null
                         if(hasSkin){
-                            skin = NetUtil.readUtf8(it.data)
-                            digest = NetUtil.readUtf8(it.data)
-                            skinType = NetUtil.readUtf8(it.data)
+                            skin = NetUtil.readUtf8(this.data)
+                            digest = NetUtil.readUtf8(this.data)
+                            skinType = NetUtil.readUtf8(this.data)
                         }
-                        var headRotation = it.data.readBoolean()
+                        var headRotation = this.data.readBoolean()
                         newNpcs.add(NpcData(
                             entityId, null, world, x,y,z,name,skin,digest,skinType,headRotation
                         ))
@@ -188,10 +188,12 @@ class YouTube : ModMain {
                     }
                 }
             }
-        }, 1)
-        api.eventBus().register(api.eventBus().createListener(), GameLoop::class.java,{
-           val now = System.currentTimeMillis()
-            if(api.minecraft().player !=null){
+
+        }
+
+        UIEngine.registerHandler(GameLoop::class.java, 1){
+            val now = System.currentTimeMillis()
+            if(api.minecraft().player != null){
                 val playerX = api.minecraft().player.x
                 val playerY = api.minecraft().player.y
                 val playerZ = api.minecraft().player.z
@@ -216,7 +218,8 @@ class YouTube : ModMain {
                 }
 
             }
-        },1)
+        }
+
 
     }
 

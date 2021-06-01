@@ -9,7 +9,7 @@ buildscript {
     dependencies {
         classpath("com.android.tools.build:gradle:3.3.0")
         classpath("com.guardsquare:proguard-gradle:7.0.0")
-        classpath("ru.cristalix:bundler:2.1.3")
+        classpath("ru.cristalix:bundler:3.0.0")
     }
 }
 
@@ -18,13 +18,20 @@ plugins {
     id 'org.jetbrains.kotlin.jvm' version '1.4.30'
 }
 
-apply plugin: 'ru.cristalix.uiengine.bundler'
+apply plugin: 'ru.cristalix.bundler'
+apply plugin: 'kotlin'
+
+bundler {
+    name 'NPC'
+    mainClass 'me.sworroo.YouTube'
+    version '1.1'
+    author 'Sworroo'
+}
 
 bundler.name = "NPC"
 bundler.mainClass = "me.sworroo.YouTube"
-bundler.version = "1.0-SNAPSHOT"
-bundler.author = "FrostBlock"
-
+bundler.version = "1.1"
+bundler.author = "Sworroo"
 
 repositories {
     mavenCentral()
@@ -35,14 +42,14 @@ repositories {
 }
 
 dependencies {
-    compileOnly  'com.google.code.gson:gson:2.8.6'
-    compileOnly 'dev.xdark:clientapi:1.0'
+    compileOnly 'com.google.code.gson:gson:2.8.6'
+    compileOnly 'dev.xdark:clientapi:live-SNAPSHOT'
     compileOnly 'it.unimi.dsi:fastutil:8.3.1'
-    implementation 'dev.xdark:clientlib:1.0'
     compileOnly 'io.netty:netty-buffer:4.1.58.Final'
     compileOnly 'ru.cristalix:client-api-libs:all'
-    compileOnly 'dev.xdark:feder:1.0-SNAPSHOT'
-    implementation 'ru.cristalix:uiengine:3.5.4'
+    compileOnly 'dev.xdark:feder:live-SNAPSHOT'
+    implementation 'ru.cristalix:client-sdk:5.3.0'
+    implementation 'ru.cristalix:uiengine:3.7.9'
     implementation 'org.jetbrains.kotlin:kotlin-stdlib:1.4.30'
 }
 
@@ -50,14 +57,10 @@ jar {
     from configurations.runtimeClasspath.collect { it.directory ? it : zipTree(it) }
 }
 
-tasks {
-    compileKotlin {
-        kotlinOptions.jvmTarget = "1.8"
-    }
-}
+compileKotlin['kotlinOptions'].jvmTarget = "1.8"
 
 afterEvaluate {
-    tasks.getByName("jarFlattened").doFirst {
+    tasks.getByName("bundle").doFirst {
         dontobfuscate()
     }
 }
